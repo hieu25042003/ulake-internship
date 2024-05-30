@@ -1,0 +1,52 @@
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ulake-service-user-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ulake-service-user-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 50
+
+---
+# Vertical Pod Autoscaler
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: ulake-service-user-vpa
+  namespace: default
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       ulake-service-user-deployment
+  updatePolicy:
+    updateMode: "Auto" # Options: "Off", "Initial", "Auto"
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "ulake-service-user"
+        minAllowed:
+          cpu: "512m"
+          memory: "500Mi"
+        maxAllowed:
+          cpu: "1024m"
+          memory: "1000Mi"
+        controlledResources: ["cpu", "memory"]
+

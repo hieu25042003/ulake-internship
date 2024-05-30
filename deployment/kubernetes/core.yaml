@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ulake-service-core-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ulake-service-core
+  template:
+    metadata:
+      labels:
+        app: ulake-service-core
+    spec:
+      containers:
+      - name: ulake-service-core
+        image: registry.access.redhat.com/ubi8/openjdk-11
+        env:
+        - name: JAVA_APP_JAR
+          value: "/home/canhieu/core/quarkus-run.jar"
+        volumeMounts:
+        - name: user-core-volume
+          mountPath: /home/canhieu/core
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1024Mi"
+            cpu: "1000m"
+      volumes:
+      - name: user-core-volume
+        hostPath:
+          path: /home/canhieu/ulake-internship/core/build/quarkus-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ulake-service-core
+  namespace: default
+spec:
+  selector:
+    app: ulake-service-core
+  ports:
+  - protocol: TCP
+    port: 8784
+    targetPort: 8784
+  type: LoadBalancer

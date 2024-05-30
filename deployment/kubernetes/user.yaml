@@ -1,0 +1,50 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ulake-service-user-deployment
+  namespace: default
+  annotations:
+    autoscaling.alpha.kubernetes.io/conditions: pod-template-hash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ulake-service-user
+  template:
+    metadata:
+      labels:
+        app: ulake-service-user
+    spec:
+      containers:
+      - name: ulake-service-user
+        image: registry.access.redhat.com/ubi8/ubi-minimal:8.6
+        command: ["/home/canhieu/ulake-service-user-runner"]
+        volumeMounts:
+        - name: user-runner-volume
+          mountPath: /home/canhieu/ulake-service-user-runner
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1024Mi"
+            cpu: "1000m"
+      volumes:
+      - name: user-runner-volume
+        hostPath:
+          path: /home/canhieu/ulake-internship/user/build/user-1.0.0-SNAPSHOT-runner
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ulake-service-user
+  namespace: default
+spec:
+  selector:
+    app: ulake-service-user
+  ports:
+  - protocol: TCP
+    port: 8785
+    targetPort: 8785
+  type: LoadBalancer
